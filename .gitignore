@@ -53,3 +53,10 @@ cabal.project.local~
 .history
 
 # End of https://www.gitignore.io/api/git,haskell,visualstudiocode
+
+# Stack
+*.cabal
+*~
+*.swp
+tarballs/
+.stack-work/
