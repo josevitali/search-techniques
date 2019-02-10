@@ -1,5 +1,6 @@
-module Engine.DFS
-(dfsSearch)
+module Engine.Solver
+(dfsSearch,
+bfsSearch)
 where
 
 import Data.Stack as Stack
@@ -29,6 +30,26 @@ dfs isGoal nextStates stack visited
               childStates = nextStates nodeState
               nextNodeList = map (\child -> Node {state=fst child, parent=Just currentNode, cost= snd child, depth=nodeDepth + 1 }) childStates
               nextStack = foldr (\node currStack -> stackPush currStack node) popedStack nextNodeList
+
+
+bfsSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
+bfsSearch startState isGoal nextStates
+    | isGoal startState = Just (0, [startState])
+    | otherwise = bfs isGoal nextStates [startNode] []
+        where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
+
+bfs :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> [Node a] -> [a] -> Maybe (Int, [a])
+bfs isGoal nextStates opened visited
+    | null opened = Nothing
+    | isGoal nodeState = Just (nodeToList currentNode)
+    | elem nodeState visited = bfs isGoal nextStates popedOpened visited
+    | otherwise = bfs isGoal nextStates nextOpened (nodeState:visited)
+        where (Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}):popedOpened = opened
+              currentNode = Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}
+              childStates = nextStates nodeState
+              nextNodeList = map (\child -> Node {state=fst child, parent=Just currentNode, cost= snd child, depth=nodeDepth + 1 }) childStates
+              nextOpened = popedOpened ++ nextNodeList
+
 
 nodeToList :: Node a -> (Int, [a])
 nodeToList Node {state=nodeState, parent=Nothing, cost=nodeCost, depth=_} = (nodeCost, [nodeState])

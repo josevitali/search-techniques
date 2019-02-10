@@ -2,7 +2,7 @@ module Main where
 
 import Lib
 import Problems.Board
-import Engine.DFS
+import Engine.Solver
 
 import Data.Maybe
 
@@ -13,6 +13,6 @@ main = do { let board = Problems.Board.newBoard [['.','.','.', 'p'],
                                                 ['.','.','g','.']]
         --   ; putStrLn (show board) }
           -- ; putStrLn (show $ dfsSearch board isGoal validMoves) }
-          ; let search = fromJust (dfsSearch board isGoal validMoves)
+          ; let search = fromJust (bfsSearch board isGoal validMoves)
           ; printBoards $ snd (search)
           ; putStrLn (show (fst search)) }
