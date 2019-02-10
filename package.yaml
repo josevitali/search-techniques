@@ -22,6 +22,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- pqueue >= 1.4.1.2
 - unordered-containers >= 0.2.9.0
 - hashable >= 1.2.7.0
 - Stack >= 0.4.0

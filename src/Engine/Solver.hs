@@ -1,9 +1,11 @@
 module Engine.Solver
 (dfsSearch,
-bfsSearch)
+bfsSearch,
+aStarSearch)
 where
 
 import Data.Stack as Stack
+import qualified Data.PQueue.Prio.Min as PQ
 
 import Data.Maybe
 
@@ -50,6 +52,26 @@ bfs isGoal nextStates opened visited
               nextNodeList = map (\child -> Node {state=fst child, parent=Just currentNode, cost= snd child, depth=nodeDepth + 1 }) childStates
               nextOpened = popedOpened ++ nextNodeList
 
+
+aStarSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> Maybe (Int, [a])
+aStarSearch startState isGoal nextStates heuristic
+            | isGoal startState = Just (0, [startState])
+            | otherwise = aStar isGoal nextStates heuristic (PQ.singleton (heuristic startState) (startNode, 0)) []
+                where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
+
+aStar :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> PQ.MinPQueue Int (Node a, Int) -> [a] -> Maybe (Int, [a])
+aStar isGoal nextStates heuristic opened visited
+            | PQ.null opened = Nothing
+            | isGoal nodeState = Just (nodeToList currentNode)
+            | elem nodeState visited = aStar isGoal nextStates heuristic popedOpened visited
+            | otherwise = aStar isGoal nextStates heuristic nextOpened (nodeState:visited)
+                where Just (fCost, (Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}, gCost)) = PQ.getMin opened
+                      popedOpened = PQ.deleteMin opened
+                      currentNode = Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}
+                      childStates = nextStates nodeState
+                      nextNodeList = map (\child -> Node {state=fst child, parent=Just currentNode, cost= snd child + nodeCost, depth=nodeDepth + 1 }) childStates
+                      nextOpened = foldr (\node currOpened -> PQ.insert (nodeCost + heuristic nodeState) (node, nodeCost) currOpened) popedOpened nextNodeList
+                      
 
 nodeToList :: Node a -> (Int, [a])
 nodeToList Node {state=nodeState, parent=Nothing, cost=nodeCost, depth=_} = (nodeCost, [nodeState])
