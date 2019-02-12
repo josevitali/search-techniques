@@ -1,5 +1,6 @@
 module Engine.Solver
 (dfsSearch,
+depthLimSearch,
 bfsSearch,
 aStarSearch)
 where
@@ -27,6 +28,11 @@ dfsSearch startState isGoal nextStates = solve isGoal nextStates (Stack (stackPu
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
+depthLimSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Float -> Maybe (Int, [a])
+depthLimSearch startState isGoal nextStates maxDepth = solve isGoal nextStates (Stack (stackPush stackNew startNode)) [] maxDepth
+        where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
+
+
 bfsSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
 bfsSearch startState isGoal nextStates = solve isGoal nextStates (Queue [startNode]) [] infinity
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
@@ -37,20 +43,22 @@ aStarSearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQ
                 where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [a] -> Float -> Maybe (Int, [a])
+solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [(Float, a)] -> Float -> Maybe (Int, [a])
 solve isGoal nextStates opened visited maxDepth
             -- if open nodes is empty, path not found
             | isCollectionEmpty opened = Nothing
-            -- if current state already visited or max depth reached, skip and keep searching
-            | elem nodeState visited || nodeDepth > maxDepth = solve isGoal nextStates popedOpened visited maxDepth
+            -- if current state already visited skip and keep searching
+            | elem (nodeDepth, nodeState) visited = solve isGoal nextStates popedOpened visited maxDepth
+            -- if max depth reached skip and keep searching
+            | nodeDepth > maxDepth = solve isGoal nextStates popedOpened ((nodeDepth, nodeState):visited) maxDepth
             -- if current state is Goal, return found path
             | isGoal nodeState = Just (nodeCost, nodeToList currentNode)
             -- otherwise explode current state and add child states to open nodes
-            | otherwise = solve isGoal nextStates nextOpened (nodeState:visited) maxDepth
+            | otherwise = solve isGoal nextStates nextOpened ((nodeDepth, nodeState):visited) maxDepth
                     where 
                         -- get next node in open nodes
-                        Just (popedOpened, Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}) = collectionPop opened
-                        currentNode = Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth}
+                        Just (popedOpened, currentNode) = collectionPop opened
+                        Node {state=nodeState, parent=nodeParent, cost=nodeCost, depth=nodeDepth} = currentNode
                         -- get child states from current state
                         childStates = nextStates nodeState
                         -- add child nodes to open nodes

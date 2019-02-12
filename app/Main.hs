@@ -13,7 +13,7 @@ main = do { let board = Problems.Board.newBoard [['.','.','.', 'p'],
                                                 ['.','.','.','g']]
         --   ; putStrLn (show board) }
           -- ; putStrLn (show $ dfsSearch board isGoal validMoves) }
-          ; let search = fromJust (aStarSearch board isGoal validMoves boardHeuristic)
+          ; let (cost, search) = fromJust (depthLimSearch board isGoal validMoves 5.0)
         --   ; let search = fromJust (dfsSearch board isGoal validMoves)
-          ; printBoards $ snd (search)
-          ; putStrLn (show (fst search)) }
+          ; printBoards search
+          ; putStrLn (show cost) }
