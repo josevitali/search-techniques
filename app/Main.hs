@@ -10,7 +10,7 @@ main :: IO ()
 main = do { let board = Problems.Board.newBoard [['.','.','.', 'p'],
                                                 ['.','.','w','.'],
                                                 ['w','.','.','w'],
-                                                ['.','.','g','.']]
+                                                ['.','.','.','g']]
         --   ; putStrLn (show board) }
           -- ; putStrLn (show $ dfsSearch board isGoal validMoves) }
           ; let search = fromJust (aStarSearch board isGoal validMoves boardHeuristic)
