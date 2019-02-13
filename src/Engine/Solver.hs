@@ -1,15 +1,17 @@
 module Engine.Solver
 (dfsSearch,
 depthLimSearch,
+iddfsSearch,
 bfsSearch,
-aStarSearch)
+aStarSearch,
+greedySearch)
 where
 
 import Data.Stack as Stack
 import qualified Data.PQueue.Prio.Min as PQ
 import Data.Maybe
 
-data SolverCollection a = PQueue (PQ.MinPQueue Int (Node a)) (a -> Int) -- PQ and heuristic
+data SolverCollection a = PQueue (PQ.MinPQueue Int (Node a)) (Int -> a -> Int) -- PQ and priority function
                             | Stack (Stack (Node a))
                             | Queue [Node a]
 
@@ -33,28 +35,42 @@ depthLimSearch startState isGoal nextStates maxDepth = solve isGoal nextStates (
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
+iddfsSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Float -> Maybe (Int, [a])
+iddfsSearch startState isGoal nextStates depth
+            | isJust currCall = currCall
+            | otherwise = iddfsSearch startState isGoal nextStates (depth+1)
+                where
+                    startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
+                    currCall = solve isGoal nextStates (Stack (stackPush stackNew startNode)) [] depth
+
+
 bfsSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
 bfsSearch startState isGoal nextStates = solve isGoal nextStates (Queue [startNode]) [] infinity
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
 aStarSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> Maybe (Int, [a])
-aStarSearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) heuristic) [] infinity
+aStarSearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (aStarPriority heuristic)) [] infinity
                 where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [(Float, a)] -> Float -> Maybe (Int, [a])
+greedySearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> Maybe (Int, [a])
+greedySearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (greedyPriority heuristic)) [] infinity
+                where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
+
+
+solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [(Int, a)] -> Float -> Maybe (Int, [a])
 solve isGoal nextStates opened visited maxDepth
             -- if open nodes is empty, path not found
             | isCollectionEmpty opened = Nothing
             -- if current state already visited skip and keep searching
-            | elem (nodeDepth, nodeState) visited = solve isGoal nextStates popedOpened visited maxDepth
+            | elem (nodeCost, nodeState) visited = solve isGoal nextStates popedOpened visited maxDepth
             -- if max depth reached skip and keep searching
-            | nodeDepth > maxDepth = solve isGoal nextStates popedOpened ((nodeDepth, nodeState):visited) maxDepth
+            | nodeDepth > maxDepth = solve isGoal nextStates popedOpened ((nodeCost, nodeState):visited) maxDepth
             -- if current state is Goal, return found path
             | isGoal nodeState = Just (nodeCost, nodeToList currentNode)
             -- otherwise explode current state and add child states to open nodes
-            | otherwise = solve isGoal nextStates nextOpened ((nodeDepth, nodeState):visited) maxDepth
+            | otherwise = solve isGoal nextStates nextOpened ((nodeCost, nodeState):visited) maxDepth
                     where 
                         -- get next node in open nodes
                         Just (popedOpened, currentNode) = collectionPop opened
@@ -85,9 +101,17 @@ addAllToCollection nextNodeList (Stack stack) = Stack (foldr (\node currStack ->
 addAllToCollection nextNodeList (Queue queue) = Queue $ queue ++ nextNodeList
 
 
-addToPQ :: Node a -> PQ.MinPQueue Int (Node a) -> (a -> Int) -> PQ.MinPQueue Int (Node a)
-addToPQ node pq heuristic = PQ.insert (cost nodeParent + heuristic nodeState) node pq
+addToPQ :: Node a -> PQ.MinPQueue Int (Node a) -> (Int -> a -> Int) -> PQ.MinPQueue Int (Node a)
+addToPQ node pq priority = PQ.insert (priority nodeCost nodeState) node pq
                                 where Node {state=nodeState, parent=Just nodeParent, cost=nodeCost, depth=nodeDepth} = node 
+
+
+aStarPriority :: (a -> Int) -> Int -> a -> Int
+aStarPriority heuristic cost state = cost + heuristic state
+
+
+greedyPriority :: (a -> Int) -> Int -> a -> Int
+greedyPriority heuristic _ state = heuristic state
 
 
 nodeToList :: Node a -> [a]
