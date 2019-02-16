@@ -1,6 +1,6 @@
 module Main where
 
-import qualified    Problems.Board     as Board
+import qualified    Problems.Maze     as Maze
 import qualified    Problems.Lala      as Lala
 import              Engine.Solver      as Solver
 import              Problems.Problem   as Problem
@@ -39,15 +39,14 @@ die = E.exitWith (E.ExitFailure 1)
 getSolver :: (Eq a, Problem a) => String -> (a -> Maybe (Int, [a]))
 getSolver "dfs"     = Solver.dfsSearch
 getSolver "bfs"     = Solver.bfsSearch
-getSolver "iddfs"    = Solver.iddfsSearch
+getSolver "iddfs"   = Solver.iddfsSearch
 getSolver "greedy"  = Solver.greedySearch
 getSolver "astar"   = Solver.aStarSearch
 
 start :: String -> String -> String -> IO ()
-start searchType "maze" fileText = printSolution (getSolver searchType (newState fileText :: Board.Board))
-start searchType "lala" fileText = printSolution (getSolver searchType (newState fileText :: Lala.Lala))
-start searchType _      fileText = problemError >> usage >> exit
-
+start searchType "maze" fileText = printSolution (getSolver searchType (newState fileText :: Maze.Maze))
+start _          _      _        = problemError >> usage >> exit
+ 
 printSolution :: (Problem a) => Maybe(Int, [a]) -> IO ()
 printSolution Nothing            = putStrLn "Solution not found"
 printSolution (Just(cost, path)) = printStates cost path

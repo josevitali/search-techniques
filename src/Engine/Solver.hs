@@ -81,7 +81,8 @@ solve opened visited maxDepth
                         -- get child states from current state
                         childStates = nextStates nodeState
                         -- add child nodes to open nodes
-                        nextNodeList = map (\(childState, childCost) -> Node {state=childState, parent=Just currentNode, cost= childCost + nodeCost, depth=nodeDepth + 1 }) childStates
+                        nextNodeList = map (\(childState, childCost) -> Node {state=childState, parent=Just currentNode,
+                         cost= childCost + nodeCost, depth=nodeDepth + 1 }) childStates
                         nextOpened = addAllToCollection nextNodeList popedOpened
 
 
