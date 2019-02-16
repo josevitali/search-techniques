@@ -1,16 +1,18 @@
 module Problems.Board
-    (
-        Board,
-        newBoard,
-        isGoal,
-        boardHeuristic,
-        validMoves,
-        printValidMoves,
-        printBoards
-    ) where
+(
+    Board,
+    newBoard,
+    isGoal,
+    boardHeuristic,
+    validMoves,
+    printValidMoves,
+    printBoards
+) where
 
+import Problems.Problem
 
 import Data.List
+import Data.List.Split
 import Data.Maybe
 
 data Row = Row [Piece] deriving (Eq)
@@ -31,8 +33,18 @@ instance Show Row where
 instance Show Board where
     show (Board rows) = foldr (\row b -> (show row)++b) "" rows
 
-newBoard :: [[Char]] -> Board
-newBoard rows = Board $ map (\row -> Row $ map newPiece row) rows
+instance Read Board where
+    readsPrec _ text = [(newBoard text, text)]
+
+instance Problem Board where
+    newState = newBoard
+    isGoal = isBoardGoal
+    nextStates = validMoves
+    heuristic = boardHeuristic
+    printStates = printBoards
+
+newBoard :: String -> Board
+newBoard rows = Board $ map (\row -> Row $ map newPiece row) (splitOn "\n" rows)
 
 newPiece :: Char -> Piece
 newPiece 'p' = Player
@@ -97,11 +109,11 @@ unflattenBoard :: [(Int, Int, Piece)] -> Board
 unflattenBoard ps = Board ( map (\xs -> Row (map (\(_,_,p) -> p) xs)) piecesMatrix)
     where piecesMatrix = groupBy (\(r1,c1,p1) (r2,c2,p2) -> r1 == r2) ps
 
-isGoal :: Board -> Bool
-isGoal (Board rows) = all (== False) $ map (\(Row xs) -> any (== Goal) xs) rows
+isBoardGoal :: Board -> Bool
+isBoardGoal (Board rows) = all (== False) $ map (\(Row xs) -> any (== Goal) xs) rows
 
 printValidMoves :: Board -> IO ()
 printValidMoves board = mapM_ (\(b,_) -> putStr ((show b)++"\n")) (validMoves board)
 
-printBoards :: [Board] -> IO ()
-printBoards boards = mapM_ (\board -> putStr ((show board)++"\n")) boards
+printBoards :: Int-> [Board] -> IO ()
+printBoards cost boards = mapM_ (\board -> putStr ((show board)++"\n")) boards >> putStrLn (concat ["Total cost: ", (show cost)])

@@ -30,15 +30,15 @@ dfsSearch startState isGoal nextStates = solve isGoal nextStates (Stack (stackPu
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-depthLimSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Float -> Maybe (Int, [a])
-depthLimSearch startState isGoal nextStates maxDepth = solve isGoal nextStates (Stack (stackPush stackNew startNode)) [] maxDepth
+depthLimSearch :: (Eq a) => Float -> a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
+depthLimSearch maxDepth startState isGoal nextStates = solve isGoal nextStates (Stack (stackPush stackNew startNode)) [] maxDepth
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-iddfsSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> Float -> Maybe (Int, [a])
-iddfsSearch startState isGoal nextStates depth
+iddfsSearch :: (Eq a) => Float -> a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
+iddfsSearch depth startState isGoal nextStates
             | isJust currCall = currCall
-            | otherwise = iddfsSearch startState isGoal nextStates (depth+1)
+            | otherwise = iddfsSearch (depth+1) startState isGoal nextStates
                 where
                     startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
                     currCall = solve isGoal nextStates (Stack (stackPush stackNew startNode)) [] depth
@@ -49,28 +49,28 @@ bfsSearch startState isGoal nextStates = solve isGoal nextStates (Queue [startNo
         where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-aStarSearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> Maybe (Int, [a])
-aStarSearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (aStarPriority heuristic)) [] infinity
+aStarSearch :: (Eq a) => (a -> Int) -> a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
+aStarSearch heuristic startState isGoal nextStates = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (aStarPriority heuristic)) [] infinity
                 where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-greedySearch :: (Eq a) => a -> (a -> Bool) -> (a -> [(a, Int)]) -> (a -> Int) -> Maybe (Int, [a])
-greedySearch startState isGoal nextStates heuristic = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (greedyPriority heuristic)) [] infinity
+greedySearch :: (Eq a) => (a -> Int) -> a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])
+greedySearch heuristic startState isGoal nextStates = solve isGoal nextStates (PQueue (PQ.singleton (heuristic startState) startNode) (greedyPriority heuristic)) [] infinity
                 where startNode = Node {state=startState, parent=Nothing, cost=0, depth=0}
 
 
-solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [(Int, a)] -> Float -> Maybe (Int, [a])
+solve :: (Eq a) => (a -> Bool) -> (a -> [(a, Int)]) -> SolverCollection a -> [a] -> Float -> Maybe (Int, [a])
 solve isGoal nextStates opened visited maxDepth
             -- if open nodes is empty, path not found
             | isCollectionEmpty opened = Nothing
             -- if current state already visited skip and keep searching
-            | elem (nodeCost, nodeState) visited = solve isGoal nextStates popedOpened visited maxDepth
+            | elem (nodeState) visited = solve isGoal nextStates popedOpened visited maxDepth
             -- if max depth reached skip and keep searching
-            | nodeDepth > maxDepth = solve isGoal nextStates popedOpened ((nodeCost, nodeState):visited) maxDepth
+            | nodeDepth > maxDepth = solve isGoal nextStates popedOpened ((nodeState):visited) maxDepth
             -- if current state is Goal, return found path
             | isGoal nodeState = Just (nodeCost, nodeToList currentNode)
             -- otherwise explode current state and add child states to open nodes
-            | otherwise = solve isGoal nextStates nextOpened ((nodeCost, nodeState):visited) maxDepth
+            | otherwise = solve isGoal nextStates nextOpened ((nodeState):visited) maxDepth
                     where 
                         -- get next node in open nodes
                         Just (popedOpened, currentNode) = collectionPop opened
