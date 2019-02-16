@@ -36,19 +36,16 @@ exit = E.exitWith E.ExitSuccess
 
 die = E.exitWith (E.ExitFailure 1)
 
-solverSearch :: (Problem a) => a -> (a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a])) -> Maybe (Int, [a])
-solverSearch problem solver = solver problem isGoal nextStates
-
-getSolver :: (Eq a, Problem a) => String -> (a -> (a -> Bool) -> (a -> [(a, Int)]) -> Maybe (Int, [a]))
+getSolver :: (Eq a, Problem a) => String -> (a -> Maybe (Int, [a]))
 getSolver "dfs"     = Solver.dfsSearch
 getSolver "bfs"     = Solver.bfsSearch
-getSolver "iddf"    = Solver.iddfsSearch 0
-getSolver "greedy"  = Solver.greedySearch heuristic
-getSolver "astar"   = Solver.aStarSearch heuristic
+getSolver "iddfs"    = Solver.iddfsSearch
+getSolver "greedy"  = Solver.greedySearch
+getSolver "astar"   = Solver.aStarSearch
 
 start :: String -> String -> String -> IO ()
-start searchType "maze" fileText = printSolution (solverSearch (newState fileText :: Board.Board) $ getSolver searchType)
-start searchType "lala" fileText = printSolution (solverSearch (newState fileText :: Lala.Lala) $ getSolver searchType)
+start searchType "maze" fileText = printSolution (getSolver searchType (newState fileText :: Board.Board))
+start searchType "lala" fileText = printSolution (getSolver searchType (newState fileText :: Lala.Lala))
 start searchType _      fileText = problemError >> usage >> exit
 
 printSolution :: (Problem a) => Maybe(Int, [a]) -> IO ()
