@@ -1,10 +1,8 @@
 module Main where
 
 import qualified    Problems.Maze     as Maze
-import qualified    Problems.Lala      as Lala
 import              Engine.Solver      as Solver
 import              Problems.Problem   as Problem
-import              Application        as App
 
 import              Data.Maybe
 import              System.Environment
