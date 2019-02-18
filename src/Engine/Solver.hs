@@ -93,14 +93,14 @@ isCollectionEmpty (Queue queue) = null queue
 
 
 collectionPop :: SolverCollection a -> Maybe(SolverCollection a, Node a)
-collectionPop (PQueue pq heuristic) = PQ.getMin pq >>= (\(_, node) -> Just(PQueue (PQ.deleteMin pq) heuristic, node))
+collectionPop (PQueue pq priority) = PQ.getMin pq >>= (\(_, node) -> Just(PQueue (PQ.deleteMin pq) priority, node))
 collectionPop (Stack stack) = stackPop stack >>= (\(popedStack, node) -> Just(Stack popedStack, node))
 collectionPop (Queue []) = Nothing
 collectionPop (Queue (node:popedOpened)) = Just(Queue popedOpened, node)
 
 
 addAllToCollection :: [Node a] -> SolverCollection a -> SolverCollection a
-addAllToCollection nextNodeList (PQueue pq heuristic) = PQueue (foldr (\node currOpened -> addToPQ node currOpened heuristic) pq nextNodeList) heuristic
+addAllToCollection nextNodeList (PQueue pq priority) = PQueue (foldr (\node currOpened -> addToPQ node currOpened priority) pq nextNodeList) priority
 addAllToCollection nextNodeList (Stack stack) = Stack (foldl (\currStack node -> stackPush currStack node) stack nextNodeList)
 addAllToCollection nextNodeList (Queue queue) = Queue $ queue ++ nextNodeList
 
