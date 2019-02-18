@@ -15,4 +15,4 @@ class Problem a where
     isGoal :: a -> Bool
     nextStates :: a -> [(a, Int)]
     heuristic :: a -> Int
-    printStates :: Int -> [a] -> IO ()
+    printStates :: Int -> Int -> [a] -> IO ()

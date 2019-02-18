@@ -109,5 +109,6 @@ isMazeGoal (Maze rows) = all (== False) $ map (\(Row xs) -> any (== Goal) xs) ro
 printValidMoves :: Maze -> IO ()
 printValidMoves maze = mapM_ (\(b,_) -> putStr ((show b)++"\n")) (validMoves maze)
 
-printMazes :: Int-> [Maze] -> IO ()
-printMazes cost mazes = mapM_ (\maze -> putStr ((show maze)++"\n")) mazes >> putStrLn (concat ["Total cost: ", (show cost)])
+printMazes :: Int -> Int-> [Maze] -> IO ()
+printMazes visitedLength cost mazes = mapM_ (\maze -> putStr ((show maze)++"\n")) mazes >> putStrLn (concat ["Total cost: ", (show cost)])
+                                                                            >> putStrLn (concat ["Visited states: ", (show visitedLength)])

@@ -34,7 +34,7 @@ exit = E.exitWith E.ExitSuccess
 
 die = E.exitWith (E.ExitFailure 1)
 
-getSolver :: (Eq a, Problem a) => String -> (a -> Maybe (Int, [a]))
+getSolver :: (Eq a, Problem a) => String -> (a -> Maybe (Int, Int, [a]))
 getSolver "dfs"     = Solver.dfsSearch
 getSolver "bfs"     = Solver.bfsSearch
 getSolver "iddfs"   = Solver.iddfsSearch
@@ -45,6 +45,6 @@ start :: String -> String -> String -> IO ()
 start searchType "maze" fileText = printSolution (getSolver searchType (newState fileText :: Maze.Maze))
 start _          _      _        = problemError >> usage >> exit
  
-printSolution :: (Problem a) => Maybe(Int, [a]) -> IO ()
+printSolution :: (Problem a) => Maybe(Int, Int, [a]) -> IO ()
 printSolution Nothing            = putStrLn "Solution not found"
-printSolution (Just(cost, path)) = printStates cost path
+printSolution (Just(visitedLength, cost, path)) = printStates visitedLength cost path
