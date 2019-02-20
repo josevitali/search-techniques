@@ -110,5 +110,11 @@ printValidMoves :: Maze -> IO ()
 printValidMoves maze = mapM_ (\(b,_) -> putStr ((show b)++"\n")) (validMoves maze)
 
 printMazes :: Int -> Int-> [Maze] -> IO ()
-printMazes visitedLength cost mazes = mapM_ (\maze -> putStr ((show maze)++"\n")) mazes >> putStrLn (concat ["Total cost: ", (show cost)])
+printMazes visitedLength cost mazes = mapM_ (\maze -> do
+                                                        clearScreenOnDemand
+                                                        putStr ((show maze)++"\n")
+         ) mazes >> putStrLn (concat ["Total cost: ", (show cost)])
                                                                             >> putStrLn (concat ["Visited states: ", (show visitedLength)])
+
+clearScreenOnDemand :: IO ()
+clearScreenOnDemand = do getChar;putStr "\ESC[2J"
